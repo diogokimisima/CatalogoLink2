@@ -164,10 +164,10 @@ const groupedCatalogo = computed(() => {
   }
 
   return filteredItems.reduce((acc, item) => {
-    if (!acc[item.categoria]) {
-      acc[item.categoria] = [];
+    if (!acc[item.id_categoria]) {
+      acc[item.id_categoria] = [];
     }
-    acc[item.categoria].push(item);
+    acc[item.id_categoria].push(item);
     return acc;
   }, {});
 });
