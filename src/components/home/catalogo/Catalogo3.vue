@@ -50,7 +50,7 @@ import { removeDiacritics } from "../../../utils/formatarValores.js";
 import { catalogo } from "../../../data/catalogo2.js";
 import ToastSuccess from "../../toasts/ToastSuccess.vue";
 import CatalogoCard from "./CatalogoCard.vue";
-import ModalCatalogoCompra from "./ModalCatalogoCompra.vue";
+import ModalCatalogoCompra from "./ModalCatalogoCompra2.vue";
 
 const props = defineProps({
   selectedCategory: {

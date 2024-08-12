@@ -35,7 +35,7 @@
 
     <h2 class="my-3 text-center font-bold">Cores e modelos</h2>
 
-    <div class="overflow-y-auto flex items-center font-bold h-26 w-full my-5 px-4" id="categoriaIgual">
+    <div v-if="relatedItems.length > 1" class="overflow-y-auto flex items-center font-bold h-26 w-full my-5 px-4" id="categoriaIgual">
       <ul class="flex flex-row space-x-2 gap-5 py-5">
         <li v-motion-fade-visible class="rounded w-28" v-for="relatedItem in relatedItems" :key="relatedItem.id" :class="{
           'border-b-2 border-gray-400 transition-colors duration-500 ease-in-out':
@@ -75,9 +75,9 @@
       </p>
     </div>
 
-    <div class="bg-white border-t border-gray-400 mt-2 sticky bottom-0 px-4 py-2">
+    <div @click="handleAddToCart(selectedItem.title, somaTotal(selectedItem.id))" class="bg-white border-t border-gray-400 mt-2 sticky bottom-0 px-4 py-2">
       <div class="flex items-center justify-center py-3 w-full bg-blue-950 rounded-md">
-        <button class="flex text-white" @click="handleAddToCart(selectedItem.title, somaTotal(selectedItem.id))">
+        <button class="flex text-white" >
           <ShoppingCart class="mr-2 z-10" />
           Adicionar
         </button>
