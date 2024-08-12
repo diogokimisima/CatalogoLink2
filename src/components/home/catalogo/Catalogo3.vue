@@ -187,13 +187,13 @@ const groupedCatalogo = computed(() => {
   }
 
   return filteredItems.reduce((acc, item) => {
-    if (!acc[item.categoria]) {
-      acc[item.categoria] = {
+    if (!acc[item.id_categoria]) {
+      acc[item.id_categoria] = {
         items: [],
         selectedCard: item,
       };
     }
-    acc[item.categoria].items.push(item);
+    acc[item.id_categoria].items.push(item);
     return acc;
   }, {});
 });
@@ -216,6 +216,10 @@ const handleSortSelected = (criteria) => {
 
 const handleColorSelected = (color) => {
   selectedColors.value = color;
+};
+
+const selectRelatedItem = (item) => {
+  selectedItem.value = item;
 };
 
 const selectRelatedItemCard = (item, category) => {
