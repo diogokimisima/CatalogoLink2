@@ -1,21 +1,80 @@
-<!-- Catalogo.vue -->
-
 <template>
   <div>
-    <!-- Card -->
-    <div v-if="filteredCatalogo.length === 0" class="text-center mt-5">
+    <div v-if="groupedCatalogo.length === 0" class="text-center mt-5">
       <h1 class="font-semibold">NENHUM PRODUTO ENCONTRADO.</h1>
     </div>
 
+    <!-- Card -->
     <div
-      class="max-w-screen-2xl flex flex-row flex-wrap justify-center items-center mx-auto gap-2.5"
+      v-for="(data, category) in groupedCatalogo"
+      :key="category"
+      class="flex justify-center flex-row flex-wrap mx-auto rounded-none py-4"
     >
-      <div v-for="(item, index) in filteredCatalogo" :key="item.id">
-        <CatalogoCard
-          :item="item"
-          :is-last-card="index === filteredCatalogo.length - 1"
-          @showModal="showModal"
-        />
+      <!-- Exibe apenas o primeiro item da categoria -->
+      <div class="flex flex-col justify-center max-w-[390px] shadow-xl rounded-xl">
+        <button
+          @click="showModal(data.selectedCard)"
+          class="w-80 bg-base-100 border-b border-neutral-300 rounded-none mx-auto"
+        >
+          <figure>
+            <img
+              class="object-cover"
+              :src="data.selectedCard.imagem"
+              :alt="'Image ' + data.selectedCard.id"
+            />
+          </figure>
+
+          <div class="flex items-center justify-center py-5">
+            <div class="flex flex-col flex-grow px-4">
+              <h2 class="font-bold text-base text-left whitespace-nowrap">
+                {{ data.selectedCard.title }}
+              </h2>
+              <h3 class="font-normal text-base text-left">
+                {{ data.selectedCard.id_produto }}
+              </h3>
+            </div>
+
+            <div class="flex flex-col ml-auto px-4">
+              <h3
+                class="text-base text-gray-400 whitespace-nowrap"
+                v-if="data.selectedCard.valor_antigo"
+              >
+                <span class="text-emerald-600 mr-1">
+                  {{
+                    formatPercentage(
+                      data.selectedCard.valor_antigo,
+                      data.selectedCard.valor
+                    )
+                  }}% off
+                </span>
+                <span class="line-through">
+                  R${{ formatPrice(data.selectedCard.valor_antigo) }}
+                </span>
+              </h3>
+              <h4 class="whitespace-nowrap text-lg text-right font-semibold">
+                R${{ formatPrice(data.selectedCard.valor) }}
+              </h4>
+            </div>
+          </div>
+        </button>
+
+        <!-- Imagens da mesma categoria -->
+        <div v-if="data.items.length > 1" class="px-6">
+          <div class="flex flex-row space-x-4 py-6 px-2 mx-auto overflow-x-auto">
+            <img
+              v-for="item in data.items"
+              :key="item.id"
+              :src="item.imagem"
+              :alt="'Image ' + item.id"
+              @click="selectRelatedItemCard(item, category)"
+              class="w-28 h-24 object-contain cursor-pointer"
+              :class="{
+                'border-b-2 border-gray-400 transition-colors duration-500 ease-in-out':
+                  item.imagem === data.selectedCard.imagem,
+              }"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -28,7 +87,7 @@
 
     <!-- Modal -->
     <dialog ref="myModal" id="my_modal_3" class="modal py-5">
-      <ModalCatalogoCompra
+      <ModalCatalogoCompra2
         :selectedItem="selectedItem"
         :relatedItems="relatedItems"
         :somaTotal="somaTotal"
@@ -46,11 +105,14 @@
 import { ref, computed, onMounted, onBeforeUnmount, reactive } from "vue";
 import { useStore } from "vuex";
 
-import { removeDiacritics } from "../../../utils/formatarValores.js";
+import {
+  formatPrice,
+  formatPercentage,
+  removeDiacritics,
+} from "../../../utils/formatarValores.js";
 import { catalogo } from "../../../data/catalogo2.js";
 import ToastSuccess from "../../toasts/ToastSuccess.vue";
-import CatalogoCard from "./CatalogoCard.vue";
-import ModalCatalogoCompra from "./ModalCatalogoCompra.vue";
+import ModalCatalogoCompra2 from "./ModalCatalogoCompra2.vue";
 
 const props = defineProps({
   selectedCategory: {
@@ -72,91 +134,7 @@ const showToast = ref(false);
 const store = useStore();
 const emit = defineEmits(["adicionarAoCarrinho", "clear-filters"]);
 
-const updateCategory = (categoria) => {
-  selectedCategory.value = categoria;
-};
-
-const handleSizeSelected = (sizes) => {
-  selectedSizes.value = sizes;
-};
-
-const handleSearchInput = (query) => {
-  searchQuery.value = query;
-};
-
-const handleSortSelected = (criteria) => {
-  sortByCriteria.value = sortByCriteria.value === criteria ? null : criteria;
-};
-
-const handleColorSelected = (color) => {
-  selectedColors.value = color;
-};
-
-const selectRelatedItem = (item) => {
-  selectedItem.value = item;
-};
-
-const handleAddToCart = () => {
-  store.dispatch("addToCart", {
-    codigoProduto: selectedItem.value.id_produto,
-    nomeProduto: selectedItem.value.title,
-    valorUnitario: selectedItem.value.valor,
-    valorTotal: somaTotal(selectedItem.value.id),
-    quantidadePorTamanho: quantidades[selectedItem.value.id],
-    imagem: selectedItem.value.imagem,
-    cor: selectedItem.value.cor,
-  });
-  quantidades[selectedItem.value.id] = {};
-  myModal.value.close();
-
-  showToast.value = true;
-  setTimeout(() => {
-    showToast.value = false;
-  }, 3000);
-};
-
-const getQuantidade = (id, tamanho) => {
-  if (!quantidades[id]) {
-    return 0;
-  }
-  return quantidades[id][tamanho] || 0;
-};
-
-const updateQuantidade = (id, tamanho, quantidade) => {
-  if (!quantidades[id]) {
-    quantidades[id] = {};
-  }
-  quantidades[id][tamanho] = quantidade;
-};
-
-const totalQuantidadeSelecionada = computed(() => {
-  if (!selectedItem.value || !quantidades[selectedItem.value.id]) {
-    return 0;
-  }
-  return Object.values(quantidades[selectedItem.value.id]).reduce(
-    (total, quantidade) => total + quantidade,
-    0
-  );
-});
-
-const somaTotal = (id) => {
-  if (!quantidades[id]) {
-    return 0;
-  }
-  return Object.entries(quantidades[id]).reduce((total, [tamanho, quantidade]) => {
-    return total + selectedItem.value.valor * quantidade;
-  }, 0);
-};
-
-const clearAllFilters = () => {
-  selectedSizes.value = [];
-  selectedColors.value = [];
-  sortByCriteria.value = null;
-
-  emit("clear-filters");
-};
-
-const filteredCatalogo = computed(() => {
+const groupedCatalogo = computed(() => {
   let filteredItems = catalogo;
 
   if (props.selectedCategory !== "Todos") {
@@ -206,8 +184,112 @@ const filteredCatalogo = computed(() => {
       selectedSizes.value.some((size) => item.tamanho.includes(size))
     );
   }
-  return filteredItems;
+
+  return filteredItems.reduce((acc, item) => {
+    if (!acc[item.id_categoria]) {
+      acc[item.id_categoria] = {
+        items: [],
+        selectedCard: item,
+      };
+    }
+    acc[item.id_categoria].items.push(item);
+    return acc;
+  }, {});
 });
+
+const updateCategory = (categoria) => {
+  selectedCategory.value = categoria;
+};
+
+const handleSizeSelected = (sizes) => {
+  selectedSizes.value = sizes;
+};
+
+const handleSearchInput = (query) => {
+  searchQuery.value = query;
+};
+
+const handleSortSelected = (criteria) => {
+  sortByCriteria.value = sortByCriteria.value === criteria ? null : criteria;
+};
+
+const handleColorSelected = (color) => {
+  selectedColors.value = color;
+};
+
+const selectRelatedItem = (item) => {
+  selectedItem.value = item;
+};
+
+const selectRelatedItemCard = (item, category) => {
+  groupedCatalogo.value[category].selectedCard = item;
+  selectedItem.value = item;
+};
+
+const selectRelatedItemModal = (item) => {
+  selectedItem.value = item;
+};
+
+const handleAddToCart = () => {
+  store.dispatch("addToCart", {
+    codigoProduto: selectedItem.value.id_produto,
+    nomeProduto: selectedItem.value.title,
+    valorUnitario: selectedItem.value.valor,
+    valorTotal: somaTotal(selectedItem.value.id),
+    quantidadePorTamanho: quantidades[selectedItem.value.id],
+    imagem: selectedItem.value.imagem,
+    cor: selectedItem.value.cor,
+  });
+  quantidades[selectedItem.value.id] = {};
+  myModal.value.close();
+
+  showToast.value = true;
+  setTimeout(() => {
+    showToast.value = false;
+  }, 3000);
+};
+
+const getQuantidade = (productId, size) => {
+  return quantidades[productId] && quantidades[productId][size]
+    ? quantidades[productId][size]
+    : 0;
+};
+
+const updateQuantidade = (productId, size, quantity) => {
+  if (!quantidades[productId]) {
+    quantidades[productId] = {};
+  }
+  quantidades[productId][size] = quantity;
+};
+
+const totalQuantidadeSelecionada = computed(() => {
+  if (!selectedItem.value || !quantidades[selectedItem.value.id]) {
+    return 0;
+  }
+  return Object.values(quantidades[selectedItem.value.id]).reduce(
+    (total, quantidade) => total + quantidade,
+    0
+  );
+});
+
+const somaTotal = (productId) => {
+  const itemQuantities = quantidades[productId] || {};
+  return Object.entries(itemQuantities).reduce((total, [size, quantity]) => {
+    const product = catalogo.find((prod) => prod.id === productId);
+    if (product) {
+      total += product.valor * quantity;
+    }
+    return total;
+  }, 0);
+};
+
+const clearAllFilters = () => {
+  selectedSizes.value = [];
+  selectedColors.value = [];
+  sortByCriteria.value = null;
+
+  emit("clear-filters");
+};
 
 const relatedItems = computed(() => {
   if (!selectedItem.value) return [];
