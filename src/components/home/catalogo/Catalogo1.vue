@@ -11,10 +11,10 @@
       class="flex justify-center flex-row flex-wrap mx-auto py-4"
     >
       <!-- Exibe apenas o primeiro item da categoria -->
-      <div class="flex flex-col justify-center max-w-[390px] shadow-xl rounded-xl">
+      <div class="flex flex-col justify-center w-[370px] shadow-xl rounded-xl">
         <button
           @click="showModal(data.selectedCard)"
-          :class="['w-80 bg-base-100 border-b border-neutral-300 rounded-none mx-auto', {'bg-black rounded-xl': data.items.length === 1}]"
+          :class="['w-80 bg-base-100 border-b border-neutral-300 rounded-none mx-auto', {'rounded-xl': data.items.length === 1}]"
         >
           <figure>
             <img
@@ -60,7 +60,7 @@
 
         <!-- Imagens da mesma categoria -->
         <div v-if="data.items.length > 1" class="px-6">
-          <div class="flex flex-row space-x-4 py-6 px-2 mx-auto overflow-x-auto">
+          <div class="flex flex-row space-x-4 py-6 px-2 mx-auto overflow-x-auto ">
             <img
               v-for="item in data.items"
               :key="item.id"
