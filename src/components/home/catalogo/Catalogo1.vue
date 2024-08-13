@@ -3,18 +3,18 @@
     <div v-if="groupedCatalogo.length === 0" class="text-center mt-5">
       <h1 class="font-semibold">NENHUM PRODUTO ENCONTRADO.</h1>
     </div>
-
+    
     <!-- Card -->
     <div
       v-for="(data, category) in groupedCatalogo"
       :key="category"
-      class="flex justify-center flex-row flex-wrap mx-auto rounded-none py-4"
+      class="flex justify-center flex-row flex-wrap mx-auto py-4"
     >
       <!-- Exibe apenas o primeiro item da categoria -->
       <div class="flex flex-col justify-center max-w-[390px] shadow-xl rounded-xl">
         <button
           @click="showModal(data.selectedCard)"
-          class="w-80 bg-base-100 border-b border-neutral-300 rounded-none mx-auto"
+          :class="['w-80 bg-base-100 border-b border-neutral-300 rounded-none mx-auto', {'bg-black rounded-xl': data.items.length === 1}]"
         >
           <figure>
             <img
