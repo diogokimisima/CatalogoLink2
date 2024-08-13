@@ -98,7 +98,7 @@
       </table>
     </div>
 
-    <div class="px-4 mt-4">
+    <div :class="['px-4 mt-4', {'mb-28': relatedItems.length === 1}]">
       <p class="italic">
         <span class="font-semibold">Valor Unitário:</span> R${{ selectedItem?.valor }}
       </p>
@@ -110,7 +110,7 @@
 
     <div
       @click="handleAddToCart(selectedItem.title, somaTotal(selectedItem.id))"
-      class="bg-white border-t border-gray-400 mt-2 sticky bottom-0 px-4 py-2 "
+      class="bg-white border-t border-gray-400 mt-2 sticky bottom-0 px-4 py-2"
     >
       <div class="flex items-center justify-center py-3 w-full bg-blue-950 rounded-md">
         <button class="flex text-white">
